@@ -1,0 +1,9 @@
+BasedOnStyle: Google
+IndentWidth: 2
+PointerAlignment: Left
+SortIncludes: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortEnumsOnASingleLine: false
+IndentPPDirectives: BeforeHash
+NamespaceIndentation: All
+ColumnLimit: 0

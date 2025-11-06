@@ -1,0 +1,10 @@
+# project specific
+point-clouds/
+obj/
+
+# macOS
+.DS_Store
+
+# clangd
+.cache/
+compile_commands.json
