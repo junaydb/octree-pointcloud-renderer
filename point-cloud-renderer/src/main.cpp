@@ -51,6 +51,11 @@ int main(int argc, char** argv) {
   const unsigned int bufferBudget = atoi(argv[3]);
   const unsigned int minPointsPerNode = atoi(argv[4]);
 
+  bool octreeEnabled = true;
+  if (argc == 6) {
+    octreeEnabled = atoi(argv[5]);
+  }
+
   // initialise SDL video subsystem
   if (SDL_Init(SDL_INIT_VIDEO)) {
     std::cerr << SDL_GetError() << std::endl;
@@ -125,28 +130,35 @@ int main(int argc, char** argv) {
   bool mouseDown = false;
   Timer timer;
   Camera camera;
+  OctreeNode octree;
 
   // load point cloud
   PointCloud pointCloud = PointCloud::build(filepath);
 
-  // build LOD structure and measure build time
-  timer.start();
-  OctreeNode octree = OctreeNode::buildOctree(pointCloud, frameBudget, bufferBudget, minPointsPerNode, view);
-  timer.end();
+  if (octreeEnabled) {
+    // build LOD structure and measure build time
+    timer.start();
+    octree = OctreeNode::buildOctree(pointCloud, frameBudget, bufferBudget, minPointsPerNode, view);
+    timer.end();
 
-  // print LOD structure build time
-  float octreeBuildTime = timer.getMS();
-  long defaultPrecision = std::cout.precision();
-  std::cout.precision(2);
-  std::cout << "OCTREE BUILD TIME: " << octreeBuildTime / 1000.f << "s" << std::endl;
-  std::cout << "TOTAL NODES: " << octree.getTotalNodes() << std::endl;
-  std::cout << "MAX DEPTH: " << octree.getMaxDepth() << std::endl;
-  std::cout.precision(defaultPrecision);
+    // print LOD structure build time
+    float octreeBuildTime = timer.getMS();
+    long defaultPrecision = std::cout.precision();
+    std::cout.precision(2);
+    std::cout << "OCTREE BUILD TIME: " << octreeBuildTime / 1000.f << "s" << std::endl;
+    std::cout << "TOTAL NODES: " << octree.getTotalNodes() << std::endl;
+    std::cout << "MAX DEPTH: " << octree.getMaxDepth() << std::endl;
+    std::cout.precision(defaultPrecision);
 
-  // send points to GPU memory and free from CPU-side memory
-  octree.buffer();
-  octree.bufferDebug();
-  pointCloud.buffers.free();
+    // send points to GPU memory and free from CPU-side memory
+    octree.buffer();
+    octree.bufferDebug();
+    pointCloud.buffers.free();
+  } else {
+    std::cout << "WARN: OCTREE DISABLED" << std::endl;
+    pointCloud.buffer();
+    pointCloud.bbox.buffer();
+  }
 
   // update title to indicate loading is complete
   std::string standardTitle = "Point Cloud Renderer";
@@ -268,8 +280,12 @@ int main(int argc, char** argv) {
               pointCloud.mouse.invert();
               break;
             case SDLK_TAB:
-              liveDebug++;
-              liveDebug = liveDebug % 4;
+              if (octreeEnabled) {
+                liveDebug++;
+                liveDebug = liveDebug % 4;
+              } else {
+                liveDebug = !liveDebug;
+              }
               break;
           }
           break;
@@ -325,10 +341,14 @@ int main(int argc, char** argv) {
       glUseProgram(bboxShaderProg);
       // update mvp uniform (in bounding box shader program)
       glUniformMatrix4fv(mvpUniLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-      // debug mode 2: draw bounding boxes of nodes being drawn
-      if (liveDebug == 2) octree.drawDebug();
-      // debug mode 3: draw bounding boxes of all nodes
-      if (liveDebug == 3) octree.drawDebugAll();
+      if (octreeEnabled) {
+        // debug mode 2: draw bounding boxes of nodes being drawn
+        if (liveDebug == 2) octree.drawDebug();
+        // debug mode 3: draw bounding boxes of all nodes
+        if (liveDebug == 3) octree.drawDebugAll();
+      } else {
+        pointCloud.bbox.draw();
+      }
     }
 
     /* pointcloud drawing */
@@ -336,12 +356,17 @@ int main(int argc, char** argv) {
     glUseProgram(pointsShaderProg);
     // update mvp uniform (in point cloud shader program)
     glUniformMatrix4fv(mvpUniLoc, 1, GL_FALSE, glm::value_ptr(mvp));
-    // draw point cloud
-    octree.draw(
-        // for checking how far a node is from the camera
-        camera.getPosition(),
-        // model-view matrix - for syncing node position with GPU
-        camera.getViewMatrix() * pointCloud.getModelMatrix());
+
+    if (octreeEnabled) {
+      // draw point cloud
+      octree.draw(
+          // for checking how far a node is from the camera
+          camera.getPosition(),
+          // model-view matrix - for syncing node position with GPU
+          camera.getViewMatrix() * pointCloud.getModelMatrix());
+    } else {
+      pointCloud.draw();
+    }
 
     // swap front and back buffer, i.e., show rendered result on screen
     SDL_GL_SwapWindow(window);
@@ -377,9 +402,14 @@ int main(int argc, char** argv) {
 
     // construct debug title
     std::ostringstream os;
-    os << "Points: " << octree.getPointDrawCount()
-       << " | Uncapped: " << std::setprecision(2) << fps << "FPS " << elapsedMS
-       << "MS | Average: " << avgFPS << "FPS " << avgMS << "MS";
+    if (octreeEnabled) {
+      os << "Points: " << octree.getPointDrawCount()
+         << " | Uncapped: " << std::setprecision(2) << fps << "FPS " << elapsedMS
+         << "MS | Average: " << avgFPS << "FPS " << avgMS << "MS";
+    } else {
+      os << "Uncapped: " << std::setprecision(2) << fps << "FPS " << elapsedMS
+         << "MS | Average: " << avgFPS << "FPS " << avgMS << "MS";
+    }
     std::string debugTitle = os.str();
 
     // use relevant window title
