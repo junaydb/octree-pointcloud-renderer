@@ -39,7 +39,17 @@ int main(int argc, char** argv) {
     if (argc < 4) std::cerr << "ERROR: Point buffer budget required" << std::endl;
     if (argc < 3) std::cerr << "ERROR: Point frame budget required" << std::endl;
     if (argc < 2) std::cerr << "ERROR: Path to point cloud file required" << std::endl;
-    std::cerr << "Usage: PointCloudRenderer [FILE] [POINTS PER FRAME BUDGET] [POINT BUFFER BUDGET] [MIN POINTS PER NODE]" << std::endl;
+    std::cerr
+        << "Usage:\n"
+        << "  PointCloudRenderer <FILE> <POINTS_PER_FRAME_BUDGET> "
+           "<POINT_BUFFER_BUDGET> <MIN_POINTS_PER_NODE> [OCTREE_ENABLED]\n\n"
+        << "Arguments:\n"
+        << "  FILE                     Path to the input point cloud file.\n"
+        << "  POINTS_PER_FRAME_BUDGET  Maximum number of points to render per frame.\n"
+        << "  POINT_BUFFER_BUDGET      Maximum number of points that can be loaded into memory.\n"
+        << "  MIN_POINTS_PER_NODE      Minimum number of points per octree node.\n"
+        << "  OCTREE_ENABLED           Optional. 1 to enable octree acceleration, 0 to disable (default: 0).\n"
+        << std::endl;
     exit(EXIT_FAILURE);
   }
 
