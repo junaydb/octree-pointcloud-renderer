@@ -8,7 +8,7 @@ in higher detail, whilst rendering distant areas in lower detail.
 This allows for viewing huge point clouds in high-detail at highly interactive framerates.
 
 You can read more about what this is and how it works in
-[my blog post](https://junadb.con/posts/octree-point-cloud-renderer).
+[my blog post](https://junaydb.com/posts/octree-point-cloud-renderer).
 
 ## Examples of Performance
 
@@ -108,3 +108,18 @@ The arguments are the following:
   Lower values allow the octree to split into smaller nodes, which can improve
   LOD precision but may increase build time and memory usage.
   If this argument is set, `POINT BUFFER BUDGET` must also be provided.
+
+## Controls
+
+| Control               | Action                                             |
+| --------------------- | -------------------------------------------------- |
+| `W` / `A` / `S` / `D` | Move the camera forward, left, backward, and right |
+| `Q` / `E`             | Move the camera down and up                        |
+| Mouse movement        | Rotate the camera                                  |
+| Left click + drag     | Rotate the point cloud                             |
+| Mouse wheel           | Increase or decrease point size                    |
+| `+` / `-`             | Increase or decrease camera movement speed         |
+| `]` / `[`             | Increase or decrease mouse sensitivity             |
+| `F`                   | Reset the camera                                   |
+| `Tab`                 | Cycle debug views                                  |
+| `Esc`                 | Release the mouse from the window                  |
