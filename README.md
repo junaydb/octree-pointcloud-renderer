@@ -8,7 +8,7 @@ in higher detail, whilst rendering distant areas in lower detail.
 This allows for viewing huge point clouds in high-detail at highly interactive framerates.
 
 You can read more about what this is and how it works in
-[my blog post](https://junaydb.com/posts/octree-point-cloud-renderer).
+[my blog post](https://junaydb.com/projects/octree-point-cloud-renderer).
 
 ## Examples of Performance
 
